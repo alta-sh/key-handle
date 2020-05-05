@@ -49,7 +49,6 @@ int main(int argc, char* argv[]) {
     bool showMenu = true;
 
     while(1) {
-
         if(showMenu) { 
             renderMenu(); 
             for (size_t i = 0; i < 3; i++) {
@@ -60,7 +59,10 @@ int main(int argc, char* argv[]) {
             showMenu = false;
         }
 
-        
+
+        /* capture code */
+
+
         /* If the terminate key (F9) is pressed. */
         if (GetAsyncKeyState(VK_F9) & 0x8000) {
             MessageBeep(0xFFFFFF);
