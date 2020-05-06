@@ -56,8 +56,7 @@ LRESULT CALLBACK keyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             ShowWindow(window, 1);
             puts("Writing to file...");
             MessageBeep(0xFFFFFF);
-            Sleep(1000);
-            getchar();
+            Sleep(1500);
             terminateProgram();
         }
 
