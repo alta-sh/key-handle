@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     while(1) {
         if(showMenu) { 
             renderMenu(); 
-            for (size_t i = 0; i < 3; i++) {
+            for(size_t i = 0; i < 3; i++) {
                 MessageBeep(0xFFFFFF);
                 Sleep(500);
             }
