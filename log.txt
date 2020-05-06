@@ -1,4 +1,4 @@
-number of messages: 1
+number of messages: 2
 
-
-<11:10> THIS IS A TEST
+<12:33> THIS IS A TEST AT 33 E
+<12:34> YE ACHETHIS IS A TEST AT 354

