@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     ShowWindow(window, 0);
     
     MSG msg;
-        while (GetMessage(&msg, NULL, 0, 0) != 0);
-            UnhookWindowsHookEx(keyboardHook);
+    while (GetMessage(&msg, NULL, 0, 0) != 0);
+        UnhookWindowsHookEx(keyboardHook);
     return EXIT_SUCCESS;
 }
